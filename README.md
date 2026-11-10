@@ -19,7 +19,17 @@ The app offers two ways to reach your PC, and you pick one under **Settings**.
 
 **Cloudflare tunnel.** This is the default and needs no setup. The app starts a free Cloudflare Quick Tunnel, with no account or domain. The downside is that Cloudflare assigns a new address every time the tunnel restarts, such as after a reboot, a dropped connection, or turning access off and on. When that happens, copy the new URL into your client. The token stays the same.
 
-**Hosted relay.** You run a small relay server yourself, for example on Railway. URLs never change, which is worth it if you connect often. Setup takes a few minutes. See [Deploy the relay](docs/deploy.md).
+**Hosted relay.** Use our deployment at [computer-acesss.gtinc.ca](https://computer-acesss.gtinc.ca) for stable service URLs. You can also [deploy your own relay](docs/deploy.md).
+
+### Connect to our hosted relay
+
+1. Open **Settings** in the desktop app and select **Hosted relay**.
+2. Set **Relay URL** to `https://computer-acesss.gtinc.ca`.
+3. Leave **Enrollment key** blank. This deployment has no enrollment key configured.
+4. Select **Save**, then **Start** if access is stopped.
+5. Copy the service's URL and token into your MCP client using **Streamable HTTP** and **Bearer Token** authentication.
+
+Each service still requires its generated bearer token. The enrollment key only controls registration of new devices.
 
 ## Services
 
