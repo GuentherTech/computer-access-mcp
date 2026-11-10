@@ -1,0 +1,9 @@
+/computer-access-mcp
+/computer-access-mcp.exe
+/dist/
+*.log
+/relay-data/
+*.dat
+*.lock
+/out
+/bin/
