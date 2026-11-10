@@ -1,6 +1,6 @@
 # Quick mode reference
 
-These settings apply to `computer-access-mcp quick`. Quick mode uses temporary Cloudflare URLs. The default agent mode uses saved URLs through a hosted relay.
+These settings apply to `computer-access-mcp quick`. Quick mode uses temporary Cloudflare URLs and saves nothing. The desktop agent saves its services and tokens, and can use a hosted relay for URLs that never change.
 
 ## Command-line flags
 

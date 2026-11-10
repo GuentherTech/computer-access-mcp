@@ -23,7 +23,7 @@ The relay refuses to start on Railway without an attached volume or a public ori
 3. Enter the enrollment key if configured, then select **Save**.
 4. Copy each service's URL and token into the MCP client using Streamable HTTP and bearer authentication.
 
-Build the installer with `make installer`; see the [build instructions](../README.md#build-the-installer).
+Build the installer with `make installer`; see the [build instructions](development.md#build-the-installer).
 
 ## Test a relay locally
 

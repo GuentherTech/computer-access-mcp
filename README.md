@@ -1,81 +1,47 @@
 # Computer access
 
-Run the Windows agent, turn it on, and copy a service URL and password into your MCP client. The local Gio desktop app manages built-in PowerShell MCP services. Cloudflare Quick Tunnel starts on the PC without a Cloudflare account, domain, or hosted relay.
+Computer access lets an AI assistant work on your Windows PC. It gives the assistant one tool, `powershell`, and the assistant uses it to read and edit files, run programs, and check on the machine.
 
-Cloudflare assigns a new hostname whenever the tunnel restarts. Service passwords remain saved until you regenerate them. Each service has its own URL path and password.
+It gives you a URL and a token. You paste both into any MCP client that supports Streamable HTTP with bearer token authentication, and the assistant can reach your PC from anywhere.
 
-## Install on Windows
+## Get started
 
-1. Install PowerShell 7 if it is missing.
-2. Run `computer-access-setup.exe`. It installs for your Windows account and includes cloudflared.
-3. Open **Computer access** from the Start menu.
-4. Copy the service URL and token into your MCP client. Select **Streamable HTTP** and **Bearer Token**.
+1. Install [PowerShell 7](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows) if you don't have it.
+2. Run `computer-access-setup.exe`. It installs for your Windows account only, needs no admin rights, and includes cloudflared. Tick **Start at login** if you want the app running all the time.
+3. Open **Computer access** from the Start menu. It creates your first service.
+4. In your MCP client, add a server with the service's URL and token. Choose Streamable HTTP as the transport and Bearer Token as the authentication.
 
-The installer offers **Start at login**. Uninstall through Windows Installed apps. Quit the agent from its tray menu before upgrading or uninstalling. Saved configuration and credentials remain in your user configuration directory.
+Closing the window keeps the app running in the system tray. Use the tray menu to reopen it, turn access off, or quit. Quit before you upgrade or uninstall.
 
-Closing the window keeps the agent in the system tray without a taskbar entry. Open the tray icon to manage services, turn access off, or quit. Opening the executable again brings up the existing agent's window.
+## How you connect
 
-## Manage services
+The app offers two ways to reach your PC, and you pick one under **Settings**.
 
-- Select **+ Add** to create another PowerShell MCP service.
-- Edit a service name directly in its panel, then select **Save** or **Cancel**.
-- Turn each service on or off independently, or use the agent switch to control all services.
-- Regenerate a password or URL independently. Deleting a service revokes both.
+**Cloudflare tunnel.** This is the default and needs no setup. The app starts a free Cloudflare Quick Tunnel, with no account or domain. The downside is that Cloudflare assigns a new address every time the tunnel restarts, such as after a reboot, a dropped connection, or turning access off and on. When that happens, copy the new URL into your client. The token stays the same.
 
-Every service exposes the built-in `powershell` tool. Local HTTP reverse proxy services are no longer supported. Upgrading removes saved proxy services and preserves PowerShell services and their credentials.
+**Hosted relay.** You run a small relay server yourself, for example on Railway. URLs never change, which is worth it if you connect often. Setup takes a few minutes. See [Deploy the relay](docs/deploy.md).
 
-PowerShell commands run with the account that launches the agent. MCP instructions direct clients to perform all PC operations through the PowerShell tool.
+## Services
 
-## Build from source
+A service is one MCP endpoint with its own URL and token. All services run PowerShell as you. Separate services let you give each assistant its own credentials, so you can cut one off without touching the others.
 
-On Windows, install Go 1.25 or later. Build with Go:
+In the app you can add services, rename them, and turn each one on or off. **Stop** turns off all of them. Rotating a URL or token cuts off the old one immediately, and deleting a service revokes both.
 
-```powershell
-	go build -o dist/computer-access-mcp.exe .
-```
+## Limits
 
-For a desktop executable without a console, run `make build`. The checked-in Windows resource supplies the icon; normal builds need no resource compiler.
+- Each call starts a fresh PowerShell process. Variables and the current folder don't carry over between calls.
+- A call can run for at most 2 minutes. For longer work, the assistant starts a background process and checks on it later.
+- Up to four commands run at once, across all services. Others wait their turn.
+- The desktop app runs on Windows only.
+- Nothing keeps a history of the commands that ran.
 
-## Build the installer
+## Try it without installing
 
-Install GNU Make, [Inno Setup 6](https://jrsoftware.org/isinfo.php), and cloudflared on the build PC. Then run:
+`computer-access-mcp quick` starts a temporary server in a console window. It prints a URL and token and stops when you press Ctrl+C. It saves nothing, and it needs cloudflared on your PATH. See [Quick mode](docs/quick-mode.md).
 
-```powershell
-	make installer
-```
+## More documentation
 
-The output is `dist/computer-access-setup.exe`. It contains the desktop agent, cloudflared, a Start menu shortcut, and the standard Inno Setup uninstaller. PowerShell 7 remains a runtime prerequisite.
-
-The Makefile finds cloudflared on PATH and defaults to Inno Setup's standard installation directory. Override either path when needed:
-
-```powershell
-	make installer ISCC="C:/Tools/Inno/ISCC.exe" CLOUDFLARED="C:/Tools/cloudflared.exe"
-```
-
-`make test` runs Go tests and vet. `make icons` regenerates the icon and Windows resources after artwork or version changes; it requires GNU windres. Edit the application version in `assets/app.rc`, then run `make icons`. The installer reads that version from the built EXE.
-
-The installer definition is [installer/setup.iss](installer/setup.iss). There are no PowerShell build, install, or uninstall scripts.
-
-## Use an optional hosted relay
-
-The relay is configured for Railway with the root `railway.json`. Attach a persistent volume at `/data`, generate a public domain, and redeploy. See [Railway deployment](docs/deploy.md).
-
-On the agent, open **Settings** and select **Hosted relay**. Enter the Railway HTTPS origin and optional enrollment key. Relay URLs stay assigned across restarts until regenerated.
-
-For a local relay during development:
-
-```powershell
-.\dist\computer-access-mcp.exe relay
-.\dist\computer-access-mcp.exe agent -relay http://127.0.0.1:8788
-```
-
-## Verify the project
-
-```powershell
-go test ./...
-go vet ./...
-```
-
-The tests cover PowerShell through direct and relay gateways, independent services, credential revocation, restart persistence, proxy removal, request cancellation, and authentication. PowerShell tests require `pwsh`. Set `TEST_CLOUDFLARE=1` to include the live Cloudflare test.
-
-See the [reference](docs/reference.md) for flags and limits. The console-only temporary server is available with `computer-access-mcp quick`; see [quick mode](docs/quick-mode.md).
+- [Reference](docs/reference.md) covers command-line flags, how credentials work, and limits.
+- [Quick mode](docs/quick-mode.md) explains the `powershell` tool in detail.
+- [Deploy the relay](docs/deploy.md) covers setting up a hosted relay on Railway.
+- [Development](docs/development.md) covers building from source, building the installer, and running tests.
