@@ -1,6 +1,6 @@
-#define AppName "Computer access"
+#define AppName "Computer Access"
 #define AppExe "computer-access-mcp.exe"
-#define AppVersion GetVersionNumbersString(SourcePath + "..\dist\" + AppExe)
+#define AppVersion GetStringFileInfo(SourcePath + "..\dist\" + AppExe, "ProductVersion")
 #ifndef CloudflaredPath
   #define CloudflaredPath SourcePath + "..\dist\cloudflared.exe"
 #endif
@@ -8,7 +8,10 @@
 [Setup]
 AppId=GuentherTech.ComputerAccess
 AppName={#AppName}
+AppVerName={#AppName}
 AppVersion={#AppVersion}
+UninstallDisplayName={#AppName}
+VersionInfoDescription={#AppName} Setup
 AppPublisher=GuentherTech
 DefaultDirName={localappdata}\Programs\ComputerAccess
 PrivilegesRequired=lowest
@@ -16,6 +19,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
 DisableWelcomePage=yes
+WizardStyle=modern
 OutputDir=..\dist
 OutputBaseFilename=computer-access-setup
 SetupIconFile=..\assets\app.ico

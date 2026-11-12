@@ -115,8 +115,8 @@ func runDesktopGUI(ctx context.Context, a *agent, show bool) error {
 	defer func() { a.mu.Lock(); a.showGUI = nil; a.mu.Unlock() }()
 	go systray.Run(func() {
 		systray.SetIcon(desktopTrayIcon())
-		systray.SetTooltip("Computer access")
-		systray.AddMenuItem("Open Computer access", "").Click(activate)
+		systray.SetTooltip("Computer Access")
+		systray.AddMenuItem("Open Computer Access", "").Click(activate)
 		systray.AddMenuItem("Turn agent on / off", "").Click(func() {
 			_ = a.mutate(func(c *agentConfig) error { c.Enabled = !c.Enabled; return nil })
 			if w := window(); w != nil {
@@ -161,7 +161,7 @@ func runDesktopGUI(ctx context.Context, a *agent, show bool) error {
 				return nil
 			case <-openWindow:
 				w = new(app.Window)
-				w.Option(app.Title("Computer access"), app.Size(unit.Dp(860), unit.Dp(460)), app.MinSize(unit.Dp(700), unit.Dp(380)))
+				w.Option(app.Title("Computer Access"), app.Size(unit.Dp(860), unit.Dp(460)), app.MinSize(unit.Dp(700), unit.Dp(380)))
 				u.window = w
 				setWindow(w)
 			}

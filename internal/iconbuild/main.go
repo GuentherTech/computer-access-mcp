@@ -6,8 +6,8 @@ import (
 	"encoding/binary"
 	"image"
 	"image/color"
-	"image/draw"
 	"image/png"
+	"math"
 	"os"
 )
 
@@ -18,22 +18,7 @@ func main() {
 	binary.LittleEndian.PutUint16(header[4:], uint16(len(sizes)))
 	var payload bytes.Buffer
 	for i, size := range sizes {
-		im := image.NewNRGBA(image.Rect(0, 0, size, size))
-		draw.Draw(im, im.Bounds(), image.NewUniform(color.NRGBA{R: 49, G: 91, B: 148, A: 255}), image.Point{}, draw.Src)
-		scale := func(v int) int { return (v*size + 32) / 64 }
-		stroke := max(1, scale(3))
-		white := image.NewUniform(color.NRGBA{R: 240, G: 245, B: 255, A: 255})
-		rect := func(x, y, w, h int) {
-			r := image.Rect(x, y, x+w, y+h)
-			draw.Draw(im, r, white, image.Point{}, draw.Src)
-		}
-		left, right, top, bottom := scale(10), scale(54), scale(13), scale(43)
-		rect(left, top, right-left, stroke)
-		rect(left, bottom-stroke, right-left, stroke)
-		rect(left, top, stroke, bottom-top)
-		rect(right-stroke, top, stroke, bottom-top)
-		rect(scale(30), bottom, stroke, scale(8))
-		rect(scale(22), scale(50), scale(20), stroke)
+		im := renderIcon(size)
 		var encoded bytes.Buffer
 		if err := png.Encode(&encoded, im); err != nil {
 			panic(err)
@@ -50,4 +35,44 @@ func main() {
 	if err := os.WriteFile("assets/app.ico", output, 0644); err != nil {
 		panic(err)
 	}
+}
+
+// Render at subpixel positions so the same artwork stays crisp at tray and installer sizes.
+func renderIcon(size int) *image.NRGBA {
+	im := image.NewNRGBA(image.Rect(0, 0, size, size))
+	rounded := func(x, y, left, top, width, height, radius float64) bool {
+		dx := math.Max(math.Abs(x-left-width/2)-(width/2-radius), 0)
+		dy := math.Max(math.Abs(y-top-height/2)-(height/2-radius), 0)
+		return dx*dx+dy*dy <= radius*radius
+	}
+	const samples = 4
+	for y := 0; y < size; y++ {
+		for x := 0; x < size; x++ {
+			var red, green, blue, alpha uint32
+			for sy := 0; sy < samples; sy++ {
+				for sx := 0; sx < samples; sx++ {
+					px := (float64(x) + (float64(sx)+0.5)/samples) * 64 / float64(size)
+					py := (float64(y) + (float64(sy)+0.5)/samples) * 64 / float64(size)
+					if !rounded(px, py, 2, 2, 60, 60, 14) {
+						continue
+					}
+					t := (px + py) / 128
+					c := color.NRGBA{R: uint8(52 - 23*t), G: uint8(139 - 57*t), B: uint8(238 - 42*t), A: 255}
+					monitor := rounded(px, py, 13, 16, 38, 28, 3) && !rounded(px, py, 16, 19, 32, 22, 1)
+					stand := rounded(px, py, 30, 43, 4, 7, 1) || rounded(px, py, 23, 49, 18, 3, 1.5)
+					if monitor || stand {
+						c = color.NRGBA{R: 245, G: 250, B: 255, A: 255}
+					}
+					red += uint32(c.R)
+					green += uint32(c.G)
+					blue += uint32(c.B)
+					alpha += 255
+				}
+			}
+			if alpha > 0 {
+				im.SetNRGBA(x, y, color.NRGBA{R: uint8(red * 255 / alpha), G: uint8(green * 255 / alpha), B: uint8(blue * 255 / alpha), A: uint8(alpha / (samples * samples))})
+			}
+		}
+	}
+	return im
 }

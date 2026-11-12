@@ -1,8 +1,8 @@
 32512 ICON "app.ico"
 
 1 VERSIONINFO
-FILEVERSION 0,2,1,0
-PRODUCTVERSION 0,2,1,0
+FILEVERSION 0,1,0,0
+PRODUCTVERSION 0,1,0,0
 FILEFLAGSMASK 0x3fL
 FILEFLAGS 0x0L
 FILEOS 0x40004L
@@ -14,12 +14,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "GuentherTech\0"
-            VALUE "FileDescription", "Computer access\0"
-            VALUE "FileVersion", "0.2.1\0"
+            VALUE "FileDescription", "Computer Access\0"
+            VALUE "FileVersion", "0.1.0\0"
             VALUE "InternalName", "computer-access-mcp\0"
             VALUE "OriginalFilename", "computer-access-mcp.exe\0"
-            VALUE "ProductName", "Computer access\0"
-            VALUE "ProductVersion", "0.2.1\0"
+            VALUE "ProductName", "Computer Access\0"
+            VALUE "ProductVersion", "0.1.0\0"
         END
     END
     BLOCK "VarFileInfo"

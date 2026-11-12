@@ -132,7 +132,7 @@ func runQuick(args []string) error {
 		defer tunnel.stop()
 		publicURL = tunnel.url
 	}
-	fmt.Printf("\nComputer access MCP\n\nServer URL:     %s/mcp\nTransport:      Streamable HTTP\nAuthentication: Bearer Token\nBearer token:   %s\nWorking folder: %s\n\nCommands run with your Windows account's permissions.\nKeep the bearer token private. Press Ctrl+C to stop.\n\n", publicURL, token, dir)
+	fmt.Printf("\nComputer Access\n\nServer URL:     %s/mcp\nTransport:      Streamable HTTP\nAuthentication: Bearer Token\nBearer token:   %s\nWorking folder: %s\n\nCommands run with your Windows account's permissions.\nKeep the bearer token private. Press Ctrl+C to stop.\n\n", publicURL, token, dir)
 	var tunnelDone <-chan error
 	if tunnel != nil {
 		tunnelDone = tunnel.done
