@@ -53,6 +53,10 @@ func (a *agent) desktopServiceAction(id, action string) error {
 }
 
 func (a *agent) saveDesktopConnection(mode, name, relayURL, key, cloudflared string) error {
+	return a.saveDesktopSettings(mode, name, relayURL, key, cloudflared, a.snapshot().ComputerUse)
+}
+
+func (a *agent) saveDesktopSettings(mode, name, relayURL, key, cloudflared string, computer computerUseConfig) error {
 	if mode != "relay" && mode != "cloudflare" {
 		return errors.New("invalid connection mode")
 	}
@@ -74,6 +78,8 @@ func (a *agent) saveDesktopConnection(mode, name, relayURL, key, cloudflared str
 		c.Mode = mode
 		c.Name = strings.TrimSpace(name)
 		c.Cloudflared = strings.TrimSpace(cloudflared)
+		computer.Executable = strings.TrimSpace(computer.Executable)
+		c.ComputerUse = computer
 		if mode == "relay" {
 			c.RelayURL = base
 			if key != "" {

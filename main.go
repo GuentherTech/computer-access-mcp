@@ -53,6 +53,8 @@ func runQuick(args []string) error {
 	pwsh := flags.String("pwsh", "pwsh", "PowerShell 7 executable")
 	cloudflared := flags.String("cloudflared", "cloudflared", "cloudflared executable")
 	workdir := flags.String("workdir", ".", "Default working directory for commands")
+	computerUse := flags.Bool("computer-use", false, "Enable computer use with Cua Driver")
+	cuaDriver := flags.String("cua-driver", "", "Cua Driver executable path")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -96,12 +98,15 @@ func runQuick(args []string) error {
 	defer stop()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+	host := newComputerMCPHost(token, &powerShell{executable: shell, workdir: dir, slots: make(chan struct{}, 4)})
+	host.configure(computerUseConfig{Enabled: *computerUse, Executable: *cuaDriver})
+	defer host.close()
 	listener, err := net.Listen("tcp4", fmt.Sprintf("127.0.0.1:%d", *port))
 	if err != nil {
 		return err
 	}
 	server := &http.Server{
-		Handler:           newHandler(token, &powerShell{executable: shell, workdir: dir, slots: make(chan struct{}, 4)}),
+		Handler:           host,
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		IdleTimeout:       60 * time.Second,

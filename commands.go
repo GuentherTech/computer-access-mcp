@@ -42,6 +42,8 @@ func runAgent(args []string) error {
 	cloudflared := flags.String("cloudflared", "", "Optional cloudflared executable path")
 	workdir := flags.String("workdir", home, "Default working folder for PowerShell")
 	pwsh := flags.String("pwsh", "pwsh", "PowerShell 7 executable")
+	computerUse := flags.Bool("computer-use", false, "Enable computer use with Cua Driver")
+	cuaDriver := flags.String("cua-driver", "", "Cua Driver executable path")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -107,6 +109,21 @@ func runAgent(args []string) error {
 			return err
 		}
 	}
+	computerFlags := map[string]bool{}
+	flags.Visit(func(f *flag.Flag) { computerFlags[f.Name] = true })
+	if computerFlags["computer-use"] || computerFlags["cua-driver"] {
+		if err := a.mutate(func(c *agentConfig) error {
+			if computerFlags["computer-use"] {
+				c.ComputerUse.Enabled = *computerUse
+			}
+			if computerFlags["cua-driver"] {
+				c.ComputerUse.Executable = *cuaDriver
+			}
+			return nil
+		}); err != nil {
+			return err
+		}
+	}
 	dir, err := filepath.Abs(*workdir)
 	if err != nil {
 		return err
@@ -119,7 +136,11 @@ func runAgent(args []string) error {
 		return errors.New("working folder must be a directory")
 	}
 	a.builtinToken = link.NewSecret()
-	a.builtinHandler = newHandler(a.builtinToken, &powerShell{lookup: func() (string, error) { return findPowerShell(*pwsh) }, workdir: dir, slots: make(chan struct{}, 4)})
+	a.builtinHost = newComputerMCPHost(a.builtinToken, &powerShell{lookup: func() (string, error) { return findPowerShell(*pwsh) }, workdir: dir, slots: make(chan struct{}, 4)})
+	a.builtinHandler = a.builtinHost
+	a.mu.Lock()
+	a.applyRuntimesLocked()
+	a.mu.Unlock()
 	listener, err := net.Listen("tcp4", fmt.Sprintf("127.0.0.1:%d", *port))
 	if err != nil {
 		return err

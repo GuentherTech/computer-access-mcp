@@ -116,7 +116,7 @@ func TestAuthentication(t *testing.T) {
 func verifyMCP(t *testing.T, endpoint string) {
 	t.Helper()
 	init := rpc(t, endpoint, "initialize", map[string]any{"protocolVersion": "2025-06-18", "capabilities": map[string]any{}, "clientInfo": map[string]string{"name": "test", "version": "1"}})
-	if !strings.Contains(string(init["instructions"]), "ALL operations") {
+	if !strings.Contains(string(init["instructions"]), "powershell tool") {
 		t.Fatal("missing server instructions")
 	}
 	listed := rpc(t, endpoint, "tools/list", map[string]any{})

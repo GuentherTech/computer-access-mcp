@@ -24,17 +24,18 @@ type serviceConfig struct {
 }
 
 type agentConfig struct {
-	Version         int             `json:"version"`
-	DeviceID        string          `json:"device_id"`
-	DeviceSecret    string          `json:"device_secret"`
-	ManagementToken string          `json:"management_token"`
-	Name            string          `json:"name"`
-	Mode            string          `json:"mode,omitempty"`
-	Cloudflared     string          `json:"cloudflared,omitempty"`
-	RelayURL        string          `json:"relay_url"`
-	EnrollmentKey   string          `json:"enrollment_key,omitempty"`
-	Enabled         bool            `json:"enabled"`
-	Services        []serviceConfig `json:"services"`
+	Version         int               `json:"version"`
+	DeviceID        string            `json:"device_id"`
+	DeviceSecret    string            `json:"device_secret"`
+	ManagementToken string            `json:"management_token"`
+	Name            string            `json:"name"`
+	Mode            string            `json:"mode,omitempty"`
+	Cloudflared     string            `json:"cloudflared,omitempty"`
+	RelayURL        string            `json:"relay_url"`
+	EnrollmentKey   string            `json:"enrollment_key,omitempty"`
+	Enabled         bool              `json:"enabled"`
+	ComputerUse     computerUseConfig `json:"computer_use,omitempty"`
+	Services        []serviceConfig   `json:"services"`
 }
 
 type serviceRuntime struct {
@@ -57,6 +58,7 @@ type agent struct {
 	publicURL      string
 	builtinToken   string
 	builtinHandler http.Handler
+	builtinHost    *computerMCPHost
 }
 
 func defaultConfigPath() (string, error) {
@@ -211,6 +213,11 @@ func (a *agent) applyRuntimesLocked() {
 			delete(a.runtimes, id)
 		}
 	}
+	if a.builtinHost != nil {
+		computer := a.config.ComputerUse
+		computer.Enabled = computer.Enabled && len(a.runtimes) > 0
+		a.builtinHost.configure(computer)
+	}
 }
 
 func (a *agent) close() {
@@ -220,6 +227,9 @@ func (a *agent) close() {
 	}
 	a.runtimes = map[string]serviceRuntime{}
 	a.mu.Unlock()
+	if a.builtinHost != nil {
+		a.builtinHost.close()
+	}
 	a.unlock()
 }
 

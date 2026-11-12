@@ -11,6 +11,8 @@ These settings apply to `computer-access-mcp quick`. Quick mode uses temporary C
 | `-workdir` | `.` | Default working directory for commands. Must exist. |
 | `-pwsh` | `pwsh` | PowerShell 7 executable name or path. |
 | `-cloudflared` | `cloudflared` | Cloudflared executable name or path. |
+| `-computer-use` | `false` | Adds Cua Driver tools and resources alongside PowerShell. |
+| `-cua-driver` | `cua-driver` on PATH | Cua Driver executable path. Requires `-computer-use`. |
 
 `COMPUTER_ACCESS_TOKEN` overrides the generated bearer token. The value must contain at least 32 characters and no whitespace. Generated tokens contain 32 cryptographically random bytes encoded as URL-safe base64. The server prints the token once at startup and does not persist it.
 
@@ -22,7 +24,7 @@ The server uses the [official Go MCP SDK](https://github.com/modelcontextprotoco
 
 ## PowerShell tool
 
-The single tool is `powershell`.
+The built-in tool is `powershell`. Enabling `-computer-use` adds the forwarded `cua_` tools described in the [computer use reference](reference.md#computer-use-with-cua).
 
 | Parameter | Required | Meaning |
 | --- | --- | --- |
@@ -54,7 +56,7 @@ The server removes `COMPUTER_ACCESS_TOKEN` from the command's environment. This 
 
 ## Client instructions and permissions
 
-The MCP initialization response directs clients to use `powershell` for all operations on this PC, including file reads, writes, searches, program execution, and system inspection. The tool description repeats this direction.
+The MCP initialization response directs clients to use `powershell` for command-line operations on this PC, including file reads, writes, searches, program execution, and system inspection. When enabled, the `cua_` tools provide graphical interaction.
 
 These are instructions for the client model. They do not prevent a client from invoking its other tools. The server itself provides no separate file tools, filesystem sandbox, command allowlist, or per-command approval dialog. PowerShell runs with the permissions of the account that launched the server.
 

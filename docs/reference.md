@@ -17,6 +17,8 @@
 | `-headless` | `false` | Runs without the desktop window or tray. |
 | `-workdir` | Current user's home directory | Default PowerShell working folder. |
 | `-pwsh` | `pwsh` | PowerShell 7 executable name or path. |
+| `-computer-use` | Saved setting, `false` for new agents | Enables Cua tools for every service. Explicit `-computer-use=false` disables them. |
+| `-cua-driver` | Saved path, otherwise `cua-driver` on PATH | Cua Driver executable. Supplying a path does not enable computer use. |
 
 `COMPUTER_ACCESS_ENROLLMENT_KEY` supplies an optional relay enrollment key. The key is saved in the private agent configuration. The settings screen can also set it.
 
@@ -62,9 +64,25 @@ The configured relay origin is fixed after setup because it forms part of every 
 
 ## PowerShell services
 
-All services expose the built-in PowerShell MCP server. The public service root maps to `/mcp`. The server uses the `powershell` tool and [execution behavior](quick-mode.md#powershell-tool). MCP instructions direct clients to perform all operations on the PC through that tool.
+All services expose the built-in PowerShell MCP server. The public service root maps to `/mcp`. The server uses the `powershell` tool and [execution behavior](quick-mode.md#powershell-tool). MCP instructions direct clients to use PowerShell for command-line work and Cua tools, when enabled, for graphical interaction.
 
 Service names are editable directly in the service panel with Save changes and Cancel. Adding a service requires only a name. Local HTTP destinations and upstream bearer tokens are no longer supported. Existing saved HTTP proxy services are removed on upgrade without changing PowerShell service identities.
+
+## Computer use with Cua
+
+Computer use is an optional device-wide setting. It exposes Cua Driver tools through the same authenticated Streamable HTTP endpoint as PowerShell. Cua Driver is a separate installation; the installer does not bundle or update it. Settings accepts an executable path, without arguments. The agent launches it with the `mcp` argument.
+
+The forwarding implementation connects to a local stdio MCP subprocess. It discovers tools, resources, and resource templates at startup, including paginated catalogs. Tool names receive the `cua_` prefix. Schemas, annotations, image content, structured results, and tool and protocol errors pass through. Resource URIs and contents retain their original values. Upstream instructions are included with an explanation of the tool prefix.
+
+The upstream connection uses MCP `2025-06-18`. Bundled guides are forwarded through standard resource listing and reads when available. The skills extension, prompts, sampling, elicitation, progress notifications, resource subscriptions, and live catalog updates are not forwarded. Arbitrary MCP server configuration is not exposed in the UI.
+
+One subprocess is shared by all services. Discovery starts lazily after authentication. Initialization has a 15-second deadline. Cua tool calls execute one at a time with a 120-second deadline, including queue time. PowerShell retains its separate concurrency limit. Named Cua sessions are shared upstream; separate service credentials do not isolate desktop state.
+
+Changing the computer use setting or executable cancels the old subprocess and its calls. Stopping all services or quitting the app also cancels it. Revoking an individual service cancels that service's requests while other services keep their shared driver. Cua may connect to an existing desktop daemon; this app stops its MCP subprocess, not an independently managed Cua daemon.
+
+If the subprocess exits, its tools and resources are rediscovered on the next request. Failed actions are never replayed. The assistant must inspect the current state before retrying an action whose result was lost. Failed initialization returns HTTP 503 and allows another attempt after two seconds. Disable computer use to restore the PowerShell-only endpoint if Cua is unavailable.
+
+Reconnect the MCP client after enabling or disabling computer use, changing the driver, or upgrading it. Screenshot tasks require a client and model that accept MCP image content. The driver runs with the launching account's desktop permissions and requires a signed-in desktop session.
 
 ## Connections and limits
 

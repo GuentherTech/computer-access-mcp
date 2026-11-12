@@ -120,7 +120,7 @@ func TestAgentRelayPowerShell(t *testing.T) {
 	endpoint := f.http.URL + "/s/" + s.URLID
 	data := []byte(`{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"integration","version":"1"}}}`)
 	status, body, err := publicRequest(endpoint, s.Password, "POST", data)
-	if err != nil || status != 200 || !strings.Contains(string(body), "ALL operations") {
+	if err != nil || status != 200 || !strings.Contains(string(body), "powershell tool") {
 		t.Fatalf("initialize failed: %d %s %v", status, body, err)
 	}
 	data = []byte(`{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"powershell","arguments":{"script":"Write-Output 'Relay PowerShell works'"}}}`)

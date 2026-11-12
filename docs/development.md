@@ -40,6 +40,8 @@ make test
 
 This runs `go test ./...` and `go vet ./...`. The PowerShell tests need `pwsh`. The tests cover PowerShell through both the Cloudflare and relay paths, independent services, credential rotation, restart persistence, request cancellation, and authentication.
 
+Forwarding tests launch a test subprocess over stdio and exercise discovery, schemas, images, resources, errors, cancellation, shared execution, and crash recovery. They do not require Cua or interact with the desktop. Set `TEST_CUA_DRIVER=1` to include a read-only interoperability test against `cua-driver` on PATH. It discovers the installed driver's tools and lists apps through the HTTP endpoint without printing app data.
+
 Set `TEST_CLOUDFLARE=1` to include the live Cloudflare tests. They start a real Quick Tunnel and need internet access.
 
 ## Run a relay locally

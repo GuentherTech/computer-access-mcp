@@ -65,6 +65,8 @@ type desktopUI struct {
 	relayURL       widget.Editor
 	enrollmentKey  widget.Editor
 	cloudflared    widget.Editor
+	cuaDriver      widget.Editor
+	computerUse    widget.Bool
 	relayMode      widget.Bool
 	settingsLoaded bool
 	quitting       bool
@@ -96,7 +98,7 @@ func runDesktopGUI(ctx context.Context, a *agent, show bool) error {
 	u.password.SingleLine = true
 	u.password.ReadOnly = true
 	u.password.Mask = '•'
-	for _, editor := range []*widget.Editor{&u.name, &u.deviceName, &u.relayURL, &u.enrollmentKey, &u.cloudflared, &u.inlineName} {
+	for _, editor := range []*widget.Editor{&u.name, &u.deviceName, &u.relayURL, &u.enrollmentKey, &u.cloudflared, &u.cuaDriver, &u.inlineName} {
 		editor.SingleLine = true
 	}
 	u.enrollmentKey.Mask = '•'
@@ -268,7 +270,7 @@ func (u *desktopUI) update(gtx layout.Context) {
 		if u.relayMode.Value {
 			mode = "relay"
 		}
-		err := u.agent.saveDesktopConnection(mode, u.deviceName.Text(), u.relayURL.Text(), u.enrollmentKey.Text(), u.cloudflared.Text())
+		err := u.agent.saveDesktopSettings(mode, u.deviceName.Text(), u.relayURL.Text(), u.enrollmentKey.Text(), u.cloudflared.Text(), computerUseConfig{Enabled: u.computerUse.Value, Executable: u.cuaDriver.Text()})
 		u.report(err)
 		if err == nil {
 			u.enrollmentKey.SetText("")
@@ -350,6 +352,8 @@ func (u *desktopUI) loadSettings() {
 	u.deviceName.SetText(c.Name)
 	u.relayURL.SetText(c.RelayURL)
 	u.cloudflared.SetText(c.Cloudflared)
+	u.computerUse.Value = c.ComputerUse.Enabled
+	u.cuaDriver.SetText(c.ComputerUse.Executable)
 	u.relayMode.Value = c.Mode == "relay"
 	u.settingsLoaded = true
 }
@@ -660,6 +664,14 @@ func (u *desktopUI) connection(gtx layout.Context) layout.Dimensions {
 		children = append(children, u.field("cloudflared", &u.cloudflared, "Auto-detect"))
 	} else {
 		children = append(children, u.field("Relay URL", &u.relayURL, "https://connect.example.com"), u.field("Enrollment key", &u.enrollmentKey, "Unchanged"))
+	}
+	children = append(children, func(gtx layout.Context) layout.Dimensions {
+		return material.CheckBox(u.theme, &u.computerUse, "Computer use with Cua").Layout(gtx)
+	})
+	if u.computerUse.Value {
+		children = append(children,
+			u.field("Cua Driver executable", &u.cuaDriver, "cua-driver"),
+			u.label("Install Cua Driver first. Applies to all services. Reconnect your assistant after saving.", 12, false, guiMuted))
 	}
 	children = append(children, func(gtx layout.Context) layout.Dimensions {
 		return row(gtx, u.btn("save-connection", "Save", true), u.btn("quit", "Quit", false))

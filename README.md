@@ -1,6 +1,6 @@
 # Computer access
 
-Computer access lets an AI assistant work on your Windows PC. It gives the assistant one tool, `powershell`, and the assistant uses it to read and edit files, run programs, and check on the machine.
+Computer access lets an AI assistant work on your Windows PC. The `powershell` tool reads and edits files, runs programs, and checks on the machine. Optional computer use with Cua Driver adds tools to inspect and operate desktop apps.
 
 It gives you a URL and a token. You paste both into any MCP client that supports Streamable HTTP with bearer token authentication, and the assistant can reach your PC from anywhere.
 
@@ -37,11 +37,25 @@ A service is one MCP endpoint with its own URL and token. All services run Power
 
 In the app you can add services, rename them, and turn each one on or off. **Stop** turns off all of them. Rotating a URL or token cuts off the old one immediately, and deleting a service revokes both.
 
+## Enable computer use
+
+1. Install [Cua Driver for Windows](https://cua.ai/docs/cua-driver/quickstart).
+2. In Computer access, open **Settings** and select **Computer use with Cua**.
+3. If `cua-driver` is not on PATH, enter its full executable path in **Cua Driver executable**.
+4. Select **Save** and reconnect your assistant so it discovers the new tools.
+
+Every service exposes the same Cua tools with a `cua_` prefix, alongside `powershell`. The assistant can read app state, receive screenshots, click, and type. Your MCP client must pass image tool results to a vision-capable model for screenshot-based tasks. Cua's bundled guides are available as MCP resources on driver versions that provide them.
+
+The app starts `cua-driver mcp` on the first authenticated request and shares that process across services. Cua Driver is installed and updated separately. Run the app in your signed-in Windows desktop session. Background interaction depends on the target application.
+
+If Cua cannot start, the endpoint returns HTTP 503. Correct the executable path or disable computer use to restore the PowerShell-only endpoint. See [computer use reference](docs/reference.md#computer-use-with-cua).
+
 ## Limits
 
 - Each call starts a fresh PowerShell process. Variables and the current folder don't carry over between calls.
 - A call can run for at most 2 minutes. For longer work, the assistant starts a background process and checks on it later.
 - Up to four commands run at once, across all services. Others wait their turn.
+- Cua tool calls run one at a time across all services and have a 120-second limit, including queue time.
 - The desktop app runs on Windows only.
 - Nothing keeps a history of the commands that ran.
 
