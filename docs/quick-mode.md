@@ -12,7 +12,7 @@ These settings apply to `computer-access-mcp quick`. Quick mode uses temporary C
 | `-pwsh` | `pwsh` | PowerShell 7 executable name or path. |
 | `-cloudflared` | `cloudflared` | Cloudflared executable name or path. |
 | `-computer-use` | `false` | Adds Cua Driver tools and resources alongside PowerShell. |
-| `-cua-driver` | `cua-driver` on PATH | Cua Driver executable path. Requires `-computer-use`. |
+| `-cua-driver` | Auto-detect | Searches PATH, then Cua's standard per-user Windows install folder. Requires `-computer-use`. |
 
 `COMPUTER_ACCESS_TOKEN` overrides the generated bearer token. The value must contain at least 32 characters and no whitespace. Generated tokens contain 32 cryptographically random bytes encoded as URL-safe base64. The server prints the token once at startup and does not persist it.
 

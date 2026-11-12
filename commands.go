@@ -192,6 +192,22 @@ func findPowerShell(binary string) (string, error) {
 	return path, err
 }
 
+func findCuaDriver(binary string) (string, error) {
+	path, err := exec.LookPath(binary)
+	if err == nil || runtime.GOOS != "windows" || (binary != "cua-driver" && binary != "cua-driver.exe") {
+		return path, err
+	}
+	// An app launched by Explorer or the installer can inherit PATH from before
+	// Cua was installed. Resolve its standard per-user installation directly.
+	if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
+		installed := filepath.Join(localAppData, "Programs", "Cua", "cua-driver", "bin", "cua-driver.exe")
+		if path, lookupErr := exec.LookPath(installed); lookupErr == nil {
+			return path, nil
+		}
+	}
+	return "", err
+}
+
 func runRelay(args []string) error {
 	options, err := parseRelayOptions(args)
 	if err != nil {

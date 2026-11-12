@@ -18,7 +18,7 @@
 | `-workdir` | Current user's home directory | Default PowerShell working folder. |
 | `-pwsh` | `pwsh` | PowerShell 7 executable name or path. |
 | `-computer-use` | Saved setting, `false` for new agents | Enables Cua tools for every service. Explicit `-computer-use=false` disables them. |
-| `-cua-driver` | Saved path, otherwise `cua-driver` on PATH | Cua Driver executable. Supplying a path does not enable computer use. |
+| `-cua-driver` | Saved path, otherwise auto-detect | Cua Driver executable. Searches PATH, then `%LOCALAPPDATA%\Programs\Cua\cua-driver\bin\cua-driver.exe` on Windows. Supplying a path does not enable computer use. |
 
 `COMPUTER_ACCESS_ENROLLMENT_KEY` supplies an optional relay enrollment key. The key is saved in the private agent configuration. The settings screen can also set it.
 

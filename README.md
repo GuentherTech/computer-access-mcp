@@ -41,7 +41,7 @@ In the app you can add services, rename them, and turn each one on or off. **Sto
 
 1. Install [Cua Driver for Windows](https://cua.ai/docs/cua-driver/quickstart).
 2. In Computer access, open **Settings** and select **Computer use with Cua**.
-3. If `cua-driver` is not on PATH, enter its full executable path in **Cua Driver executable**.
+3. Leave **Cua Driver executable** blank to search PATH and Cua's standard Windows install folder. For other locations, enter the full executable path.
 4. Select **Save** and reconnect your assistant so it discovers the new tools.
 
 Every service exposes the same Cua tools with a `cua_` prefix, alongside `powershell`. The assistant can read app state, receive screenshots, click, and type. Your MCP client must pass image tool results to a vision-capable model for screenshot-based tasks. Cua's bundled guides are available as MCP resources on driver versions that provide them.

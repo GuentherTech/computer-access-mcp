@@ -19,6 +19,7 @@ type stdioConfig struct {
 	Command string
 	Args    []string
 	Dir     string
+	lookup  func(string) (string, error)
 }
 
 // stdioForwarder owns one subprocess and serializes calls across all services.
@@ -94,7 +95,16 @@ func (f *stdioForwarder) connect(requestCtx context.Context) (_ http.Handler, _ 
 	stop := context.AfterFunc(f.ctx, cancel)
 	defer stop()
 	processCtx, stopProcess := context.WithCancel(f.ctx)
-	command := exec.CommandContext(processCtx, f.config.Command, f.config.Args...)
+	lookup := f.config.lookup
+	if lookup == nil {
+		lookup = exec.LookPath
+	}
+	executable, err := lookup(f.config.Command)
+	if err != nil {
+		stopProcess()
+		return nil, nil, fmt.Errorf("find MCP executable: %w", err)
+	}
+	command := exec.CommandContext(processCtx, executable, f.config.Args...)
 	command.Dir = f.config.Dir
 	command.WaitDelay = time.Second
 	configureProcess(command)
@@ -283,7 +293,7 @@ func (h *computerMCPHost) configure(config computerUseConfig) {
 	if executable == "" {
 		executable = "cua-driver"
 	}
-	h.upstream = newStdioForwarder(stdioConfig{Prefix: "cua_", Command: executable, Args: []string{"mcp"}, Dir: h.shell.workdir}, func(extra string) *mcp.Server {
+	h.upstream = newStdioForwarder(stdioConfig{Prefix: "cua_", Command: executable, Args: []string{"mcp"}, Dir: h.shell.workdir, lookup: findCuaDriver}, func(extra string) *mcp.Server {
 		return newMCPServer(h.shell, instructions+"\nWhen listed, read skill://cua-driver/SKILL.md and its Windows guide with resources/read before computer use.\n"+extra)
 	})
 }
